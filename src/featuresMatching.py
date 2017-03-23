@@ -1,5 +1,7 @@
 import numpy as np
 import cv2
+import sys
+
 from matplotlib import pyplot as plt
 
 # Defining global variable #
@@ -7,10 +9,37 @@ frame_array=[]
 global_correction_vector=[]
 i=0
 
-# Reading the video for the 1st time, the goal is estimate the overall motion between each frame #
-cap = cv2.VideoCapture('../public/bike.avi')
+# Border management choice detection #
+if len(sys.argv)<3:
+    border_type="black"
+else:
+    border_type=sys.argv[2]
 
-while(cap.isOpened()):
+# Here we extract the input file path, the extension and create the output file path #
+path=sys.argv[1]
+input_extension="."+path.split('.')[len(path.split('.'))-1]
+path_stabilized=""
+
+portion_indice=0
+for portion in path.split('.')[0:len(path.split('.'))-1]:
+    if not portion:
+        portion="."
+    if portion_indice== len(path.split('.'))-2:
+        portion=portion+"_stabilized"
+    path_stabilized+=portion
+    portion_indice+=1
+
+path_stabilized=path_stabilized+input_extension
+
+# Reading the video for the 1st time, the goal is estimate the overall motion between each frame #
+cap = cv2.VideoCapture(path)
+
+# We gather information like frame width, height and FPS rate #
+video_fps=int(cap.get(cv2.CAP_PROP_FPS))
+video_width=int(cap.get(3))
+video_height=int(cap.get(4))
+
+while(cap.isOpened() and i<300):
     ret, frame = cap.read()
     if ret==True:
 
@@ -59,7 +88,8 @@ while(cap.isOpened()):
                     #cv2.imshow("img_circle1",img_circle1)
                     #cv2.imshow("img_circle2",img_circle2)
 
-                    #if cv2.waitKey(1) & 0xFF == ord('q'):
+                    #cv2.imshow("test", frame)
+                    #if cv2.waitKey(20):
                     #    break
 
 
@@ -109,13 +139,13 @@ cv2.destroyAllWindows()
 
 
 # We now read the video a second time while applying the correction to see the result #
-cap2 = cv2.VideoCapture('../public/bike.avi')
-fourcc = cv2.VideoWriter_fourcc(*'XVID')
-out = cv2.VideoWriter('../public/bike_stabilized.avi',fourcc, 10.0, (320,240))
+cap2 = cv2.VideoCapture(path)
+fourcc = cv2.VideoWriter_fourcc(*'MPEG')
+out = cv2.VideoWriter(path_stabilized,fourcc, video_fps, (video_width,video_height))
 counter=0
-buffer_frame=np.empty((240, 320, 3))
+buffer_frame=np.empty((video_height, video_width, 3))
 
-while(cap2.isOpened()):
+while(cap2.isOpened() and counter<300):
     ret, frame = cap2.read()
 
     if ret==True and counter<len(global_correction_vector):
@@ -131,50 +161,59 @@ while(cap2.isOpened()):
             # Two possibilities to manage: The x axis correction is either negative or positive #
             if int(global_correction_vector[counter][0])>0:
 
-                # For now we transform the border pixels into white pixels -> Will be changed to something better #
-                if buffer_frame.size:
+                # For now we transform the border pixels into the pixel from last frame -> Will be changed to something better #
+                if buffer_frame.size and border_type=="replace":
                     row[:int(global_correction_vector[counter][0])]=buffer_frame[index][:int(global_correction_vector[counter][0])]
-                else:
+                elif border_type=="white":
                     row[:int(global_correction_vector[counter][0])]=[255, 255, 255]
+                elif border_type=="black":
+                    row[:int(global_correction_vector[counter][0])]=[0, 0, 0]
 
 
                 # Displacing every pixels by a certain amount given by the correction vector #
                 for index, pix in enumerate(row):
-                    if (index>int(global_correction_vector[counter][0])) and (index-int(global_correction_vector[counter][0])<320) :
+                    if (index>int(global_correction_vector[counter][0])) and (index-int(global_correction_vector[counter][0])<video_width) :
                         pix=row[index-int(global_correction_vector[counter][0])]
 
             # Same as before but with the correction vector being negative #
             elif int(global_correction_vector[counter][0])<0:
 
-                if buffer_frame.size:
+                if buffer_frame.size and border_type=="replace":
                     row[int(global_correction_vector[counter][0]):]=buffer_frame[index][int(global_correction_vector[counter][0]):]
-                else:
+                elif border_type=="white":
                     row[int(global_correction_vector[counter][0]):]=[255,255,255]
+                elif border_type=="black":
+                    row[int(global_correction_vector[counter][0]):]=[0,0,0]
+
 
                 for index, pix in enumerate(row):
-                    if (index>int(global_correction_vector[counter][0])) and (index-int(global_correction_vector[counter][0])<320) :
+                    if (index>int(global_correction_vector[counter][0])) and (index-int(global_correction_vector[counter][0])<video_width) :
                         pix=row[index-int(global_correction_vector[counter][0])]
 
         # The y axis is simple than the x axis because numpy matrix are basically a list of row #
         if int(global_correction_vector[counter][1])>0:
-            if buffer_frame.size:
+            if buffer_frame.size and border_type=="replace":
                 frame[:int(global_correction_vector[counter][1])]=buffer_frame[:int(global_correction_vector[counter][1])]
-            else:
-                frame[:int(global_correction_vector[counter][1])]=np.full((320,3), 255, dtype=int)
+            elif border_type=="white":
+                frame[:int(global_correction_vector[counter][1])]=np.full((video_width,3), 255, dtype=int)
+            elif border_type=="black":
+                frame[:int(global_correction_vector[counter][1])]=np.full((video_width,3), 0, dtype=int)
 
             for index,row in enumerate(frame):
-                if(index>int(global_correction_vector[counter][1])) and (index-int(global_correction_vector[counter][1])<240) :
+                if(index>int(global_correction_vector[counter][1])) and (index-int(global_correction_vector[counter][1])<video_height) :
                     row=frame[index-int(global_correction_vector[counter][1])]
 
 
         elif int(global_correction_vector[counter][1])<0:
-            if buffer_frame.size:
+            if buffer_frame.size and border_type=="replace":
                 frame[int(global_correction_vector[counter][1]):]=buffer_frame[int(global_correction_vector[counter][1]):]
-            else:
-                frame[int(global_correction_vector[counter][1]):]=np.full((320,3), 255, dtype=int)
+            elif border_type=="white":
+                frame[int(global_correction_vector[counter][1]):]=np.full((video_width,3), 255, dtype=int)
+            elif border_type=="black":
+                frame[int(global_correction_vector[counter][1]):]=np.full((video_width,3), 0, dtype=int)
 
             for index,row in enumerate(frame):
-                if(index>int(global_correction_vector[counter][1])) and (index-int(global_correction_vector[counter][1])<240) :
+                if(index>int(global_correction_vector[counter][1])) and (index-int(global_correction_vector[counter][1])<video_height) :
                     row=frame[index-int(global_correction_vector[counter][1])]
 
         # We save the corrected frame #
@@ -190,10 +229,11 @@ while(cap2.isOpened()):
 
 # Now we display the initial video and the stabilized one side by side #
 
-cap_initial = cv2.VideoCapture('../public/bike.avi')
-cap_stabilized = cv2.VideoCapture('../public/bike_stabilized.avi')
+cap_initial = cv2.VideoCapture(path)
+cap_stabilized = cv2.VideoCapture(path_stabilized)
 
-while (cap_initial.isOpened() or cap_stabilized.isOpened()):
+j=0
+while ((cap_initial.isOpened() or cap_stabilized.isOpened()) and j<300):
 
     ret_initial, frame_initial=cap_initial.read()
     ret_stabilized, frame_stabilized=cap_stabilized.read()
@@ -202,8 +242,9 @@ while (cap_initial.isOpened() or cap_stabilized.isOpened()):
         cv2.imshow("Initial video:",frame_initial)
     if ret_stabilized:
         cv2.imshow("Stabilized video:",frame_stabilized)
-    if cv2.waitKey(100) & 0xFF == ord('q'):
+    if cv2.waitKey(video_fps) & 0xFF == ord('q'):
         break
+    j+=1
 
 cap_initial.release()
 cap_stabilized.release()
