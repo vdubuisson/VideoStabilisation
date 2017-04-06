@@ -1,7 +1,10 @@
 from motionEstimation import *
+#from motionFiltering import *
+from motionFilteringTrajectoire import *
 
 def motion_correction (cap, cv2, max_number_frames):
     global_correction_vector=[]
+    global_motion_vector=[]
     frame_array=[]
     i=0
     while(cap.isOpened() and i<max_number_frames):
@@ -17,25 +20,29 @@ def motion_correction (cap, cv2, max_number_frames):
 
                 motion_vector=motion_estimation(frame_array,cv2,i)
 
-                ####### TO DO : FILTRATE THE DISPLACEMENT TO ONLY KEEEP THE LOW FREQUENCY WITH FPS ########
-                #
-                #
-                #
-                ####### TO DO : FILTRATE THE DISPLACEMENT TO ONLY KEEEP THE LOW FREQUENCY WITH FPS ########
-
-                #motion_vector=motion_filtering(motion_vector)
+                # Here we gather all the motion vector not corrected (just an development process, in the end the correction algorithm will be unified) #
+                global_motion_vector.append(motion_vector)
 
                 # Here we compute the correction vector based and the mean value of keypoints displacement #
-
-                correction_vector=compute_correction_vector(motion_vector)
+                #correction_vector=compute_correction_vector(motion_vector)
 
                 # We build a list keeping track of the correction vector needed for every pair of frame #
-                global_correction_vector.append(correction_vector)
+                #global_correction_vector.append(correction_vector)
+
 
             i+=1
         else:
             i+=1
             break
+    # Here we apply the filtering to all motion vector to eliminate high frequency motion (FPS technique)
+    global_correction_vector=motion_filtering(global_motion_vector)
+
+    #for mv in global_motion_vector:
+    #    correction_vector=compute_correction_vector(mv)
+    #    global_correction_vector.append(correction_vector)
+
+    #global_correction_vector=global_motion_vector
+
     return global_correction_vector
 
 def draw_circle_keypoints(cv2, img1, img2, kp1, kp2, match, frame):

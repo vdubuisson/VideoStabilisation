@@ -8,6 +8,7 @@ def image_warping(cap2, fourcc, out, buffer_frame, max_number_frames, global_cor
             print("Counter:")
             print(counter)
             print("global_correction_vector at this frame:")
+
             print(global_correction_vector[counter])
 
             shiftX = int(global_correction_vector[counter][0])

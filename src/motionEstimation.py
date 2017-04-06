@@ -22,8 +22,10 @@ def motion_estimation(frame_array,cv2,i):
         matches = sorted(matches, key = lambda x:x.distance)
 
         # We iterate through every match to compute the displacement of every keypoints #
+        i=0
         for index, match in enumerate(matches):
-
-            motion_vector.append((kp2[match.trainIdx].pt[0]-kp1[match.queryIdx].pt[0], kp2[match.trainIdx].pt[1]- kp1[match.queryIdx].pt[1]))
-            #draw_circle_keypoints(cv2, img1, img2, kp1, kp2, match, frame)
+            if i<50:
+                motion_vector.append((kp2[match.trainIdx].pt[0]-kp1[match.queryIdx].pt[0], kp2[match.trainIdx].pt[1]- kp1[match.queryIdx].pt[1]))
+                #draw_circle_keypoints(cv2, img1, img2, kp1, kp2, match, frame)
+            i+=1
         return motion_vector

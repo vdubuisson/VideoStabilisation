@@ -36,8 +36,6 @@ max_number_frames=max_number_frames(sys.argv, numberOfFrames)
 
 global_correction_vector=motion_correction(cap, cv2, max_number_frames)
 
-print("global_correction_vector at the end:")
-print(global_correction_vector)
 cap.release()
 cv2.destroyAllWindows()
 
