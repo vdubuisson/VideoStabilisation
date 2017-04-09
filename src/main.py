@@ -1,6 +1,7 @@
 import numpy as np
 import cv2
 import sys
+import getopt
 
 from matplotlib import pyplot as plt
 from utils import *
@@ -9,14 +10,41 @@ from motionCorrection import *
 from motionFiltering import *
 from stabilizer import *
 
-# Defining global variable #
+# Managing arguments #
+max_number_frames=0
+windows_cover=0
+window_size=60
+border_type="black"
+path=""
 
 
-# Border management choice detection #
-border_type=border_management(sys.argv)
+args = '-a -b -cfoo -d bar a1 a2'.split()
+
+try:
+    opts, args = getopt.getopt(sys.argv[1:],"",["ifile=","border=", "max_frames=", "windows_cover=", "window_size="])
+except getopt.GetoptError:
+    print ('main.py --ifile <inputfile> --border <type of border> --max_frames <integer> --windows_cover <integer> --window_size <integer>')
+    sys.exit(2)
+
+print(opts)
+
+for opt, arg in opts:
+    if opt == '--ifile':
+        path=arg
+    elif opt == '--border':
+        border_type=arg
+    elif opt== '--max_frames':
+        max_number_frames=int(arg)
+    elif opt=='--windows_cover':
+        windows_cover=int(arg)
+    elif opt=='--window_size':
+        window_size=int(arg)
+
+print(path)
+
 
 # Here we extract the input file path, the extension and create the output file path #
-path=sys.argv[1]
+#path=sys.argv[1]
 input_extension="."+path.split('.')[len(path.split('.'))-1]
 path_stabilized=create_stabilized_path(path, input_extension)
 
@@ -32,16 +60,18 @@ numberOfFrames=int(cap.get(7))
 
 # Here we extract the number of frame we want to limit ourselves to. If the user did not precise any value we read the whole video #
 
-max_number_frames=max_number_frames(sys.argv, numberOfFrames)
+#max_number_frames=max_number_frames(sys.argv, numberOfFrames)
+if max_number_frames==0 or max_number_frames>numberOfFrames:
+    max_number_frames=numberOfFrames
 
-global_correction_vector=motion_correction(cap, cv2, max_number_frames)
+global_correction_vector=motion_correction(cap, cv2, max_number_frames, windows_cover, window_size)
 
 cap.release()
 cv2.destroyAllWindows()
 
 # We now read the video a second time while applying the correction to see the result #
 cap2 = cv2.VideoCapture(path)
-fourcc = cv2.VideoWriter_fourcc(*'MPEG')
+fourcc = cv2.VideoWriter_fourcc(*'MJPG')
 out = cv2.VideoWriter(path_stabilized,fourcc, videoFps, (frameWidth,frameHeight))
 buffer_frame=np.empty((frameHeight, frameWidth, 3))
 

@@ -1,8 +1,7 @@
 from motionEstimation import *
-#from motionFiltering import *
-from motionFilteringTrajectoire import *
+from motionFiltering import *
 
-def motion_correction (cap, cv2, max_number_frames):
+def motion_correction (cap, cv2, max_number_frames, windows_cover, window_size):
     global_correction_vector=[]
     global_motion_vector=[]
     frame_array=[]
@@ -20,6 +19,7 @@ def motion_correction (cap, cv2, max_number_frames):
 
                 motion_vector=motion_estimation(frame_array,cv2,i)
 
+
                 # Here we gather all the motion vector not corrected (just an development process, in the end the correction algorithm will be unified) #
                 global_motion_vector.append(motion_vector)
 
@@ -34,8 +34,9 @@ def motion_correction (cap, cv2, max_number_frames):
         else:
             i+=1
             break
+
     # Here we apply the filtering to all motion vector to eliminate high frequency motion (FPS technique)
-    global_correction_vector=motion_filtering(global_motion_vector)
+    global_correction_vector=motion_filtering(global_motion_vector, windows_cover, window_size)
 
     #for mv in global_motion_vector:
     #    correction_vector=compute_correction_vector(mv)

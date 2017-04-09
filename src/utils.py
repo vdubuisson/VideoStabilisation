@@ -15,21 +15,6 @@ def create_stabilized_path(path, extension):
     path_stabilized=path_stabilized+extension
     return path_stabilized
 
-def border_management(arg):
-
-    if len(arg)<3:
-        border_type="black"
-    else:
-        border_type=arg[2]
-    return border_type
-
-def max_number_frames(arg, numberOfFrames):
-
-    if len(arg)<4:
-        max_number_frames=numberOfFrames
-    else:
-        max_number_frames=int(arg[3])
-    return max_number_frames
 
 def display_two_vids(vid1, vid2, max_number_frames, videoFps):
     j=0
