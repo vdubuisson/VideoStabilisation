@@ -44,6 +44,8 @@ def motion_filtering(global_motion_vector, windows_cover, window_size):
     trajectory_array[0][0]=0.0
     trajectory_array[0][1]=0.0
 
+
+
     filtered_trajectory=np.zeros(trajectory_array.shape)
 
     j=1
@@ -68,8 +70,10 @@ def motion_filtering(global_motion_vector, windows_cover, window_size):
     #trajectory_array=np.resize(trajectory_array,(optimal_size,2))
 
     # Here we compute the number of windows we will apply the DFT onto #
-    nb_windows=int(len(trajectory_array)/window_size)
+    nb_windows=int(len(trajectory_array)/window_size)+1
     index_windows=0
+
+    mean_trajectory_array=np.zeros((nb_windows, 2))
 
     # Here we manage 2 cases :Windows to overlay on each other or not #
     if windows_cover==1:
@@ -132,6 +136,13 @@ def motion_filtering(global_motion_vector, windows_cover, window_size):
             else:
                 end=start+window_size
 
+            mean_counter=start
+            mean_trajectory_value=0
+            while mean_counter<=end:
+                mean_trajectory_value+=trajectory_array[mean_counter]
+                mean_counter+=1
+            mean_trajectory_array[index_windows]=mean_trajectory_value
+
             windowed_trajectory_dft_array_x=np.zeros(trajectory_array[start:end, [0]].shape)
             windowed_trajectory_dft_array_y=np.zeros(trajectory_array[start:end, [1]].shape)
 
@@ -156,6 +167,7 @@ def motion_filtering(global_motion_vector, windows_cover, window_size):
             index_windows+=1
 
     print(filtered_trajectory)
+    print(mean_trajectory_array)
 
     # Here we plot the filtered trajectory#
     plt.plot(filtered_trajectory)
@@ -171,6 +183,7 @@ def motion_filtering(global_motion_vector, windows_cover, window_size):
     # Here we filter the trajectory gain but in spatial representation#
     #filtered_trajectory[:,[0]]=scipy.ndimage.filters.gaussian_filter(filtered_trajectory[:,[0]],6,0)
     #filtered_trajectory[:,[1]]=scipy.ndimage.filters.gaussian_filter(filtered_trajectory[:,[1]],6,0)
+
 
     print(filtered_trajectory)
 

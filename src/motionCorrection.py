@@ -1,7 +1,7 @@
 from motionEstimation import *
 from motionFiltering import *
 
-def motion_correction (cap, cv2, max_number_frames, windows_cover, window_size):
+def motion_correction (cap, cv2, max_number_frames, windows_cover, window_size, frameWidth, frameHeight):
     global_correction_vector=[]
     global_motion_vector=[]
     frame_array=[]
@@ -17,7 +17,7 @@ def motion_correction (cap, cv2, max_number_frames, windows_cover, window_size):
                 print("Frame number:")
                 print(i)
 
-                motion_vector=motion_estimation(frame_array,cv2,i)
+                motion_vector=motion_estimation(frame_array,cv2,i, frameWidth, frameHeight)
 
 
                 # Here we gather all the motion vector not corrected (just an development process, in the end the correction algorithm will be unified) #
@@ -45,20 +45,6 @@ def motion_correction (cap, cv2, max_number_frames, windows_cover, window_size):
     #global_correction_vector=global_motion_vector
 
     return global_correction_vector
-
-def draw_circle_keypoints(cv2, img1, img2, kp1, kp2, match, frame):
-    # This piece of code is if you want to vizualise the keypoints (useful to debug) #
-
-    img_circle1=img1
-    cv2.circle(img_circle1, (int(kp1[match.queryIdx].pt[0]),int(kp1[match.queryIdx].pt[1])), 3, (0,0,255), 1, 8 )
-
-    img_circle2=img2
-    cv2.circle(img_circle2, (int(kp2[match.trainIdx].pt[0]),int(kp2[match.trainIdx].pt[1])), 3, (0,0,255), 1, 8 )
-
-    cv2.imshow("img_circle1",img_circle1)
-    cv2.imshow("img_circle2",img_circle2)
-
-    cv2.imshow("test", frame)
 
 
 def compute_correction_vector(motion_vector):

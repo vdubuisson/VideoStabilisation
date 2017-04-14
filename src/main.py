@@ -64,7 +64,7 @@ numberOfFrames=int(cap.get(7))
 if max_number_frames==0 or max_number_frames>numberOfFrames:
     max_number_frames=numberOfFrames
 
-global_correction_vector=motion_correction(cap, cv2, max_number_frames, windows_cover, window_size)
+global_correction_vector=motion_correction(cap, cv2, max_number_frames, windows_cover, window_size, frameWidth, frameHeight)
 
 cap.release()
 cv2.destroyAllWindows()
