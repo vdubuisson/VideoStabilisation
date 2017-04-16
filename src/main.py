@@ -10,6 +10,7 @@ from motionCorrection import *
 from motionFiltering import *
 from stabilizer import *
 
+print("Intializing...")
 # Managing arguments #
 max_number_frames=0
 windows_cover=0
@@ -26,7 +27,7 @@ except getopt.GetoptError:
     print ('main.py --ifile <inputfile> --border <type of border> --max_frames <integer> --windows_cover <integer> --window_size <integer>')
     sys.exit(2)
 
-print(opts)
+
 
 for opt, arg in opts:
     if opt == '--ifile':
@@ -40,7 +41,6 @@ for opt, arg in opts:
     elif opt=='--window_size':
         window_size=int(arg)
 
-print(path)
 
 
 # Here we extract the input file path, the extension and create the output file path #
@@ -48,6 +48,7 @@ print(path)
 input_extension="."+path.split('.')[len(path.split('.'))-1]
 path_stabilized=create_stabilized_path(path, input_extension)
 
+print("Reading input video...")
 # Reading the video for the 1st time, the goal is estimate the overall motion between each frame #
 cap = cv2.VideoCapture(path)
 
@@ -75,8 +76,9 @@ fourcc = cv2.VideoWriter_fourcc(*'MJPG')
 out = cv2.VideoWriter(path_stabilized,fourcc, videoFps, (frameWidth,frameHeight))
 buffer_frame=np.empty((frameHeight, frameWidth, 3))
 
+print("Creating a stabilized version of the input video...")
 image_warping(cap2, fourcc, out, buffer_frame, max_number_frames, global_correction_vector, np, cv2, frameWidth, frameHeight, border_type)
-
+print("Done!!!")
 # Now we display the initial video and the stabilized one side by side #
 
 cap_initial = cv2.VideoCapture(path)
@@ -87,3 +89,5 @@ display_two_vids(cap_initial, cap_stabilized, max_number_frames, videoFps)
 cap_initial.release()
 cap_stabilized.release()
 cv2.destroyAllWindows()
+
+print("Stabilized video can be found at : {}".format(path_stabilized))

@@ -5,7 +5,7 @@ def motion_estimation(frame_array,cv2,j, frameWidth, frameHeight):
     img1=frame_array[j-1]
     img2=frame_array[j]
 
-    # Initiate SIFT detector
+    # Initiate ORB detector
     orb = cv2.ORB_create()
 
     # find the keypoints and descriptors with SIFT and BRIEF

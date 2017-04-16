@@ -6,6 +6,8 @@ def motion_correction (cap, cv2, max_number_frames, windows_cover, window_size, 
     global_motion_vector=[]
     frame_array=[]
     i=0
+    percentage=0
+    print("Starting motion estimation process...")
     while(cap.isOpened() and i<max_number_frames):
         ret, frame = cap.read()
         if ret==True:
@@ -14,8 +16,6 @@ def motion_correction (cap, cv2, max_number_frames, windows_cover, window_size, 
             frame_array.append(frame)
             if i!=0:
 
-                print("Frame number:")
-                print(i)
 
                 motion_vector=motion_estimation(frame_array,cv2,i, frameWidth, frameHeight)
 
@@ -31,11 +31,16 @@ def motion_correction (cap, cv2, max_number_frames, windows_cover, window_size, 
 
 
             i+=1
+            if (i/max_number_frames)>(percentage+0.1):
+                percentage+=0.1
+                print("{}%  done".format(int(round(percentage*100))))
         else:
             i+=1
             break
 
+    print("Motion estimation process complete!")
     # Here we apply the filtering to all motion vector to eliminate high frequency motion (FPS technique)
+    print("Starting motion filtering process...")
     global_correction_vector=motion_filtering(global_motion_vector, windows_cover, window_size)
 
     #for mv in global_motion_vector:

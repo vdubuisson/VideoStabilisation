@@ -16,6 +16,7 @@ def motion_filtering(global_motion_vector, windows_cover, window_size):
     transformation_array=np.zeros([len(global_motion_vector), 2])
     i=1
 
+    print("Computing transformation array...")
     for frame_pair in global_motion_vector:
 
         if frame_pair is not None and i<len(global_motion_vector)-2:
@@ -47,7 +48,7 @@ def motion_filtering(global_motion_vector, windows_cover, window_size):
 
 
     filtered_trajectory=np.zeros(trajectory_array.shape)
-
+    print("Computing trajectory array...")
     j=1
     while j<len(transformation_array):
         trajectory_array[j][0]=trajectory_array[j-1][0]+transformation_array[j][0]
@@ -56,7 +57,7 @@ def motion_filtering(global_motion_vector, windows_cover, window_size):
 
     # After computing the trajectory we display it #
     plt.plot(trajectory_array)
-    plt.title('Trajectoire')
+    plt.title('Trajectory')
     plt.xlabel('Frame number')
     plt.ylabel('Variation in pixels')
     plt.margins(0, 0.1)
@@ -74,6 +75,8 @@ def motion_filtering(global_motion_vector, windows_cover, window_size):
     index_windows=0
 
     mean_trajectory_array=np.zeros((nb_windows, 2))
+    print("Filtering the trajectory array...")
+    percentage=0
 
     # Here we manage 2 cases :Windows to overlay on each other or not #
     if windows_cover==1:
@@ -149,8 +152,8 @@ def motion_filtering(global_motion_vector, windows_cover, window_size):
             cv2.dft(trajectory_array[start:end,[0]], windowed_trajectory_dft_array_x, cv2.DFT_SCALE)
             cv2.dft(trajectory_array[start:end,[1]], windowed_trajectory_dft_array_y, cv2.DFT_SCALE)
 
-            windowed_trajectory_dft_array_x=scipy.ndimage.filters.gaussian_filter(windowed_trajectory_dft_array_x,6,0)
-            windowed_trajectory_dft_array_y=scipy.ndimage.filters.gaussian_filter(windowed_trajectory_dft_array_y,6,0)
+            windowed_trajectory_dft_array_x=scipy.ndimage.filters.gaussian_filter(windowed_trajectory_dft_array_x,0.001,0)
+            windowed_trajectory_dft_array_y=scipy.ndimage.filters.gaussian_filter(windowed_trajectory_dft_array_y,0.001,0)
 
             windowed_filtered_trajectory=np.zeros(trajectory_array[start:end].shape)
             windowed_filtered_trajectory_x=np.zeros(windowed_trajectory_dft_array_x.shape)
@@ -166,8 +169,6 @@ def motion_filtering(global_motion_vector, windows_cover, window_size):
             filtered_trajectory[start:end]=windowed_filtered_trajectory
             index_windows+=1
 
-    print(filtered_trajectory)
-    print(mean_trajectory_array)
 
     # Here we plot the filtered trajectory#
     plt.plot(filtered_trajectory)
@@ -185,10 +186,8 @@ def motion_filtering(global_motion_vector, windows_cover, window_size):
     #filtered_trajectory[:,[1]]=scipy.ndimage.filters.gaussian_filter(filtered_trajectory[:,[1]],6,0)
 
 
-    print(filtered_trajectory)
-
     plt.plot(filtered_trajectory)
-    plt.title('Trajectoire after filtering et refiltering')
+    plt.title('Trajectory after filtering')
     plt.xlabel('Frame number')
     plt.ylabel('Variation in pixels')
     plt.margins(0, 0.1)
@@ -199,6 +198,7 @@ def motion_filtering(global_motion_vector, windows_cover, window_size):
 
     # Here we compute the global correction vector #
 
+    print("Computing global correction vector...")
     for index,value in enumerate(global_correction_vector):
         if index>0 and index<len(global_correction_vector):
             global_correction_vector[index][0]=filtered_trajectory[index][0]-trajectory_array[index][0]
@@ -215,5 +215,4 @@ def motion_filtering(global_motion_vector, windows_cover, window_size):
     plt.show()
     plt.close()
 
-    print(global_correction_vector)
     return global_correction_vector
